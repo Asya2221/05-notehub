@@ -1,25 +1,52 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchNotes } from '../services/noteService';
+import css from './NoteList.module.css';
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteNote } from '../../services/noteService';
+import type { Note } from '../../types/note';
 
-export const NotesList: React.FC = () => {
-  const { data, isLoading, error } = useQuery(['notes'], () =>
-    fetchNotes({ page: 1, perPage: 12 })
-  );
+interface NoteListProps {
+  notes: Note[];
+}
 
-  if (isLoading) return <p>Загрузка заметок...</p>;
-  if (error) return <p>Ошибка при загрузке заметок</p>;
+export default function NoteList({ notes }: NoteListProps) {
+  const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Проверка, чтобы не было undefined
-  const notes = data?.notes ?? [];
+  const mutation = useMutation({
+    mutationFn: deleteNote,
+    onMutate: (noteId: string) => {
+      setDeletingId(noteId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
+    onSettled: () => {
+      setDeletingId(null);
+    }
+  });
 
-  if (notes.length === 0) return <p>Заметок пока нет</p>;
+  if (!notes || notes.length === 0) {
+    return null;
+  }
 
   return (
-    <ul>
-      {notes.map((note) => (
-        <li key={note.id}>{note.title}</li>
+    <ul className={css.list}>
+      {notes.map(note => (
+        <li className={css.listItem} key={note.id}>
+          <h2 className={css.title}>{note.title}</h2>
+          <p className={css.content}>{note.content}</p>
+          <div className={css.footer}>
+            <span className={css.tag}>{note.tag}</span>
+            <button
+              className={css.button}
+              onClick={() => mutation.mutate(note.id)}
+              disabled={mutation.isPending && deletingId === note.id}
+            >
+              {mutation.isPending && deletingId === note.id ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </li>
       ))}
     </ul>
   );
-};
+}
