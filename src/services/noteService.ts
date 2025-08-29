@@ -12,7 +12,7 @@ interface FetchNoteParams {
   perPage?: number;
 }
 
-const API_KEY = import.meta.env.VITE_NOTEHUB_TOKEN as string;
+const API_KEY = import.meta.env.eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNTc2YzQ0NDViYWNkODgxYmIzYTMwN2Q3NDBhNDUzNCIsIm5iZiI6MTc1NTAwOTE5Mi4yMTYsInN1YiI6IjY4OWI1MGE4YThjYWU2ZDdhNThlYjUyMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ryVDouKPbLlmM5AizB10bw5dJ1T6AWd1f3onEg5OKas as string;
 const apiClient = axios.create({
   baseURL: 'https://notehub-public.goit.study/api/notes',
   headers: {
@@ -25,7 +25,7 @@ const apiClient = axios.create({
 export async function fetchNotes(
   params: FetchNoteParams
 ): Promise<FetchNotesResponse> {
-  const { data } = await apiClient.get<FetchNotesResponse>('', { params });
+  const { data } = await apiClient.get<FetchNotesResponse>('/', { params });
   return data;
 }
 
